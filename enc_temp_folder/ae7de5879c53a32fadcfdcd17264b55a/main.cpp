@@ -36,13 +36,7 @@ int main()
 		std::vector<char>response(10000);
 
 		clientSock.Recieve(response, response.capacity());
-		/*
-			TODO : Parse user paramters and handle routing
-			GET /Bruh <HTML VER>
-			if bruh is inside of a map, you should send the associated data.
-			<img></img> tags work in the same way, they request an image from you
 
-		*/
 		clientSock.Send(requestVec);
 
 
