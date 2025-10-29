@@ -41,12 +41,16 @@ namespace SocketsPlusPlus
 		{
 			_initializeWSA();
 
-		}
 
+		}
+        void Bind(std::string hostName, int port);
+        
 		void Connect(std::string hostName, int port);
 		std::uint64_t Send(std::vector<char> bytesInput);
 		std::uint64_t Recieve(std::vector<char>& bytesbuffer, std::uint64_t bytesMaxRead = 200000);
-
+        void Listen(int backLog  = SOMAXCONN);
+        Socket Accept(sockaddr* addr,int* addrlen);
+        void Close();
 		
 	private:
 		SocketsPlusPlus::SocketType type;
