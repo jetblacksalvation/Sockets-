@@ -10,7 +10,7 @@ namespace SocketsPlusPlus
 		// Create a SOCKET for connecting to server
 		this->ConnectSocket = socket(AF_INET, this->type,
 			this->protoType);
-		SOCKADDR_IN SockAddr;
+
 		host = gethostbyname(hostName.c_str());
 		if (this->ConnectSocket == INVALID_SOCKET) {
 			printf("Error at Connect(): %s\n", WSAErrorToString(WSAGetLastError()).c_str());
@@ -18,6 +18,7 @@ namespace SocketsPlusPlus
 			//WSACleanup();
 			return;
 		}
+		SOCKADDR_IN SockAddr;
 		SockAddr.sin_port = htons(port);
 		SockAddr.sin_family = AF_INET;
 		SockAddr.sin_addr.s_addr = *((unsigned long*)host->h_addr);
@@ -76,6 +77,20 @@ namespace SocketsPlusPlus
 		}
 		return result;
 	}
+	std::uint64_t Socket::Recieve(std::vector<char>& bytesbuffer)
+	{
+		if (this->ConnectSocket == INVALID_SOCKET)
+		{
+			printf("Socket Hasn't Connected TO Anything Yet\n");
+
+		}
+		int result = recv(this->ConnectSocket, bytesbuffer.data(), bytesbuffer.size(), 0);
+		if (SOCKET_ERROR == result)
+		{
+			printf("Erorr raised! : %s\n", WSAErrorToString(WSAGetLastError()).c_str());
+		}
+		return result;
+	}
 	std::uint64_t Socket::Recieve(std::vector<char>& bytesbuffer, std::uint64_t bytesMaxRead)
 	{
 		if (this->ConnectSocket == INVALID_SOCKET)
@@ -101,7 +116,7 @@ namespace SocketsPlusPlus
 	Socket Socket::Accept(sockaddr* addr,
 		int* addrlen)
 	{
-		SOCKET accSock = accept(this->ConnectSocket, NULL, NULL);
+		SOCKET accSock = accept(this->ConnectSocket, NULL,NULL);
 		if (accSock == INVALID_SOCKET)
 		{
 			printf("Erorr raised! : %s\n", WSAErrorToString(WSAGetLastError()).c_str());
