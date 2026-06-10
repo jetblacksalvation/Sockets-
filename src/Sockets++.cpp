@@ -1,4 +1,5 @@
 #include "Sockets++.hpp"
+#include <algorithm> // Required for std::search
 
 namespace SocketsPlusPlus
 {
@@ -27,6 +28,7 @@ namespace SocketsPlusPlus
 		{
 			printf("Erorr raised! : %s\n", WSAErrorToString(WSAGetLastError()).c_str());
 		}
+
 	
 	}
 	void Socket::Connect(std::string hostName, int port)
@@ -98,12 +100,89 @@ namespace SocketsPlusPlus
 			printf("Socket Hasn't Connected TO Anything Yet\n");
 
 		}
-		int result =  recv(this->ConnectSocket, bytesbuffer.data(), bytesMaxRead, 0);
+		int result = recv(this->ConnectSocket, bytesbuffer.data(), bytesMaxRead, 0);
 		if (SOCKET_ERROR == result)
 		{
 			printf("Erorr raised! : %s\n", WSAErrorToString(WSAGetLastError()).c_str());
 		}
 		return result;
+	}
+	/* this should work if the socket needs to keep the connection alive. HTTP is hacky and doesn't close the socket when its done sending all the headers, 
+	kinda makes sense if you needed to send the response the client socket would need to stay alive. Thus recieveAll should not be used instead of recieveAllHttp when dealing 
+	with get request. not sure about the other methods
+	*/
+	std::vector<char> Socket::RecieveAll()
+	{
+		std::vector<char> bytesbuffer;
+
+		if (this->ConnectSocket == INVALID_SOCKET)
+		{
+			printf("Socket Hasn't Connected TO Anything Yet\n");
+
+		}
+		char temp[4096] = { 0 };
+		int result;
+		while (true)
+		{
+			result = recv(this->ConnectSocket, temp, sizeof(temp), 0);
+
+			if (result > 0)
+			{
+				bytesbuffer.insert(bytesbuffer.end(), temp, temp + result);
+			}
+			else
+			{
+				break; // error or disconnect
+			}
+		}
+		if (SOCKET_ERROR == result)
+		{
+			printf("Erorr raised! : %s\n", WSAErrorToString(WSAGetLastError()).c_str());
+		}
+		return bytesbuffer;
+
+	}
+
+	std::vector<char> Socket::RecieveAllHttp()
+	{
+		std::vector<char> bytesbuffer;
+		static std::vector<char> httpRequestEnd = { '\r','\n','\r','\n' };
+		if (this->ConnectSocket == INVALID_SOCKET)
+		{
+			printf("Socket Hasn't Connected TO Anything Yet\n");
+
+		}
+		char temp[4096] = { 0 };
+		int result;
+		while (true)
+		{
+			result = recv(this->ConnectSocket, temp, sizeof(temp), 0);
+
+			if (result > 0)
+			{
+				bytesbuffer.insert(bytesbuffer.end(), temp, temp + result);
+				//bytesbuffer doesn't contain "\r\n\r\n" thus response has more yet to come.
+				if (std::search(bytesbuffer.begin(), bytesbuffer.end(), httpRequestEnd.begin(), httpRequestEnd.end()) == bytesbuffer.end())
+				{
+					printf("Socket Has More To Read\n");
+					continue;
+				}
+				else
+				{
+					break;
+				}
+			}
+			else
+			{
+				break; // error or disconnect
+			}
+		}
+		if (SOCKET_ERROR == result)
+		{
+			printf("Erorr raised! : %s\n", WSAErrorToString(WSAGetLastError()).c_str());
+		}
+		return bytesbuffer;
+
 	}
 	void Socket::Listen(int backLog )
 	{
@@ -129,7 +208,11 @@ namespace SocketsPlusPlus
 	}
 	void Socket::Close()
 	{
-		closesocket(this->ConnectSocket);
+		if (this->ConnectSocket != INVALID_SOCKET)
+		{
+			closesocket(this->ConnectSocket);
+			this->ConnectSocket = INVALID_SOCKET;
+		}
 	}
 
 }

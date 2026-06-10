@@ -5,6 +5,7 @@
 #include <format>
 #include <sstream>
 #include <iostream>
+#include <HttpRequest.hpp>
 //int main()
 //{
 //	SocketsPlusPlus::Socket socket(SocketsPlusPlus::SocketType::Stream, SocketsPlusPlus::ProtocolType::TCP);
@@ -51,10 +52,11 @@ int main()
 	{
 		//Accept takes a single connection at a time
 		SocketsPlusPlus::Socket clientSock = socket.Accept(NULL, NULL);
-		std::vector<char>request(10000);
+		//std::vector<char>request = clientSock.RecieveAllHttp();
+		SocketsPlusPlus::HttpRequest request(clientSock);
 
 		//Recieve takes in whatever is sent from the client to the server
-		clientSock.Recieve(request, request.capacity());
+		
 		/*
 			TODO : Parse user paramters and handle routing
 			GET /Bruh <HTML VER>

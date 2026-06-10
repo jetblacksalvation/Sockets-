@@ -24,6 +24,7 @@ namespace SocketsPlusPlus
 				return 1;
 			}
 			_isInitializedWSA = true;
+            printf("Finished Initializing WSA\n");
 			return 0;
 		}
 		else 
@@ -54,6 +55,11 @@ namespace SocketsPlusPlus
 		std::uint64_t Recieve(std::vector<char>& bytesbuffer, std::uint64_t bytesMaxRead );
         std::uint64_t Recieve(std::vector<char>& bytesbuffer);
 
+        /* returns the data read */
+        std::vector<char> RecieveAll();
+
+        std::vector<char> RecieveAllHttp();
+
         void Listen(int backLog  = SOMAXCONN);
         Socket Accept(sockaddr* addr,int* addrlen);
         void Close();
@@ -61,6 +67,7 @@ namespace SocketsPlusPlus
 	private:
 		SocketsPlusPlus::SocketType type;
 		SocketsPlusPlus::ProtocolType protoType;
+        // this could be a confusing name
 
 		SOCKET ConnectSocket;
 
