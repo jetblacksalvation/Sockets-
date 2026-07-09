@@ -41,8 +41,21 @@ int main()
 	
 	std::string httpResponse = std::format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length:{}\r\n\r\n{}",
 		fileContent.size(),fileContent);
-	
+
 	std::vector<char> response(httpResponse.begin(), httpResponse.end()) ;
+
+	//error
+	std::ifstream htmlErrorFileContent(std::string(WWWROOT) + "/error.html");
+	std::string fileErrorContent(
+		(std::istreambuf_iterator<char>(htmlErrorFileContent)),
+		std::istreambuf_iterator<char>()
+	);
+
+	std::string httpErrorResponse = std::format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length:{}\r\n\r\n{}",
+		fileErrorContent.size(), fileErrorContent);
+
+	std::vector<char> errorResponse(fileErrorContent.begin(), fileErrorContent.end());
+
 	// Bind to local host on port 80, the default port for http websites
 	socket.Bind("127.0.0.1", 80);
 	// Listen sets a flag on the socket that allows for clients to connect,
@@ -54,7 +67,15 @@ int main()
 		SocketsPlusPlus::Socket clientSock = socket.Accept(NULL, NULL);
 		//std::vector<char>request = clientSock.RecieveAllHttp();
 		SocketsPlusPlus::HttpRequest request(clientSock);
+		if (request.GetRequestRoute() != "/bruh")
+		{
+			clientSock.Send(errorResponse);
+		}
+		else
+		{
+			clientSock.Send(response);
 
+		}
 		//Recieve takes in whatever is sent from the client to the server
 		
 		/*
@@ -65,7 +86,6 @@ int main()
 
 		*/
 		//Send sends over the response we created earlier.
-		clientSock.Send(response);
 
 
 
